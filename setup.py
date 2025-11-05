@@ -1,4 +1,5 @@
 """Setup configuration for rl-arena package."""
+
 from setuptools import setup, find_packages
 import os
 
