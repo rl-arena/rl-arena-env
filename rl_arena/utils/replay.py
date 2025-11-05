@@ -12,7 +12,7 @@ from rl_arena.core.types import ActionType, ObservationType, RewardType
 class ReplayRecorder:
     """
     Records environment interactions for later playback and analysis.
-    
+
     Replays are saved in JSON format with the following structure:
     {
         "metadata": {
@@ -35,7 +35,7 @@ class ReplayRecorder:
         ]
     }
     """
-    
+
     def __init__(
         self,
         environment_name: str,
@@ -44,7 +44,7 @@ class ReplayRecorder:
     ):
         """
         Initialize the replay recorder.
-        
+
         Args:
             environment_name: Name of the environment being recorded
             configuration: Environment configuration used
@@ -55,7 +55,7 @@ class ReplayRecorder:
         self.metadata = metadata or {}
         self.steps: List[Dict[str, Any]] = []
         self.start_time = datetime.now()
-        
+
     def record_step(
         self,
         step: int,
@@ -68,7 +68,7 @@ class ReplayRecorder:
     ) -> None:
         """
         Record a single step of the environment.
-        
+
         Args:
             step: Step number
             actions: Actions taken by all players
@@ -88,11 +88,11 @@ class ReplayRecorder:
             "info": self._serialize(info),
         }
         self.steps.append(step_data)
-    
+
     def save(self, filepath: str) -> None:
         """
         Save the replay to a JSON file.
-        
+
         Args:
             filepath: Path where to save the replay
         """
@@ -106,13 +106,13 @@ class ReplayRecorder:
             },
             "steps": self.steps,
         }
-        
+
         filepath = Path(filepath)
         filepath.parent.mkdir(parents=True, exist_ok=True)
-        
+
         with open(filepath, "w") as f:
             json.dump(replay_data, f, indent=2)
-    
+
     @staticmethod
     def _serialize(obj: Any) -> Any:
         """Convert numpy arrays and other non-JSON types to JSON-serializable formats."""
@@ -131,13 +131,13 @@ class ReplayRecorder:
 def load_replay(filepath: str) -> Dict[str, Any]:
     """
     Load a replay from a JSON file.
-    
+
     Args:
         filepath: Path to the replay file
-        
+
     Returns:
         Dictionary containing replay data with 'metadata' and 'steps' keys
-        
+
     Example:
         >>> replay = load_replay("replays/game_001.json")
         >>> print(f"Environment: {replay['metadata']['environment']}")
@@ -155,14 +155,14 @@ def save_replay(
 ) -> None:
     """
     Save replay data to a JSON file.
-    
+
     Args:
         replay_data: Replay data dictionary
         filepath: Path where to save the replay
     """
     filepath = Path(filepath)
     filepath.parent.mkdir(parents=True, exist_ok=True)
-    
+
     with open(filepath, "w") as f:
         json.dump(replay_data, f, indent=2)
 
@@ -174,16 +174,16 @@ def replay_episode(
 ) -> None:
     """
     Replay a recorded episode in an environment.
-    
+
     Args:
         environment: The environment to replay in
         replay_data: Replay data loaded from a file
         render: Whether to render during replay
-        
+
     Example:
         >>> import rl_arena
         >>> from rl_arena.utils import load_replay, replay_episode
-        >>> 
+        >>>
         >>> env = rl_arena.make("pong")
         >>> replay = load_replay("replays/game_001.json")
         >>> replay_episode(env, replay, render=True)
