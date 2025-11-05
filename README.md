@@ -4,8 +4,8 @@ A Python library for competitive reinforcement learning environments, similar to
 
 [![Tests](https://github.com/rl-arena/rl-arena-env/workflows/Tests/badge.svg)](https://github.com/rl-arena/rl-arena-env/actions)
 [![PyPI version](https://badge.fury.io/py/rl-arena.svg)](https://badge.fury.io/py/rl-arena)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/license-Apache%202.0-yellow.svg)](https://opensource.org/license/apache-2-0)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 ## 🌟 Features
