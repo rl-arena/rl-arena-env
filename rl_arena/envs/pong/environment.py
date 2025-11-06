@@ -248,11 +248,11 @@ class PongEnvironment(Environment):
     def _get_render_state(self) -> Dict[str, Any]:
         """Get the current state in a format suitable for rendering."""
         return {
-            'ball': {'x': float(self.ball_pos[0]), 'y': float(self.ball_pos[1])},
-            'paddle1': {'y': float(self.paddle1_y)},
-            'paddle2': {'y': float(self.paddle2_y)},
-            'paddle_height': self.paddle_height,
-            'score': [self.score1, self.score2]
+            "ball": {"x": float(self.ball_pos[0]), "y": float(self.ball_pos[1])},
+            "paddle1": {"y": float(self.paddle1_y)},
+            "paddle2": {"y": float(self.paddle2_y)},
+            "paddle_height": self.paddle_height,
+            "score": [self.score1, self.score2],
         }
 
     def get_observation(self, player_id: int) -> ObservationType:

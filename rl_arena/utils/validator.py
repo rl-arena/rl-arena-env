@@ -1,6 +1,6 @@
 """Validation utilities for actions and configurations."""
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 import gymnasium as gym
 
 from rl_arena.core.exceptions import InvalidActionError, InvalidConfigurationError
@@ -65,8 +65,8 @@ def validate_actions(
 def validate_configuration(
     configuration: Dict[str, Any],
     required_keys: List[str],
-    optional_keys: List[str] = None,
-    key_types: Dict[str, type] = None,
+    optional_keys: Optional[List[str]] = None,
+    key_types: Optional[Dict[str, type]] = None,
 ) -> None:
     """
     Validate an environment configuration dictionary.

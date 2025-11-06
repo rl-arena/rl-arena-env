@@ -3,28 +3,24 @@
 from typing import Dict, Any, List, Optional
 
 
-def generate_pong_html(
-    history: List[Dict[str, Any]],
-    width: int = 800,
-    height: int = 600
-) -> str:
+def generate_pong_html(history: List[Dict[str, Any]], width: int = 800, height: int = 600) -> str:
     """
     Generate HTML5 animation for Pong environment replay.
-    
+
     Args:
         history: List of state dictionaries from match recording
         width: Canvas width in pixels
         height: Canvas height in pixels
-        
+
     Returns:
         Complete HTML string with embedded JavaScript animation
     """
     import json
-    
+
     # Serialize state history
     history_json = json.dumps(history)
-    
-    html = f'''<!DOCTYPE html>
+
+    html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -275,8 +271,8 @@ def generate_pong_html(
         renderCurrentFrame();
     </script>
 </body>
-</html>'''
-    
+</html>"""
+
     return html
 
 
@@ -286,14 +282,14 @@ def generate_html(
     metadata: Optional[Dict[str, Any]] = None,
     duration: Optional[float] = None,
     width: int = 800,
-    height: int = 600
+    height: int = 600,
 ) -> str:
     """
     Generate HTML5 animation for any environment replay.
-    
+
     This is a dispatcher function that calls the appropriate environment-specific
     HTML generator based on the environment name.
-    
+
     Args:
         state_history: List of state dictionaries
         env_name: Name of the environment
@@ -301,16 +297,16 @@ def generate_html(
         duration: Optional match duration in seconds
         width: Canvas width
         height: Canvas height
-        
+
     Returns:
         Complete HTML string
-        
+
     Raises:
         ValueError: If environment is not supported
     """
     env_name_lower = env_name.lower()
-    
-    if 'pong' in env_name_lower:
+
+    if "pong" in env_name_lower:
         return generate_pong_html(state_history, width, height)
     else:
         raise ValueError(f"HTML generation not implemented for environment: {env_name}")
@@ -319,8 +315,8 @@ def generate_html(
 def get_supported_environments() -> List[str]:
     """
     Get list of environments that support HTML replay generation.
-    
+
     Returns:
         List of supported environment names
     """
-    return ['Pong']
+    return ["Pong"]

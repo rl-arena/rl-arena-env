@@ -3,7 +3,9 @@
 import pytest
 import numpy as np
 from abc import ABC
+from typing import Dict, Any
 from rl_arena.core.environment import Environment
+from rl_arena.core.renderer import Renderer
 from rl_arena.core.exceptions import InvalidPlayerError
 import gymnasium as gym
 
@@ -47,6 +49,14 @@ class DummyEnvironment(Environment):
         if player_id not in [0, 1]:
             raise InvalidPlayerError(player_id, self.num_players)
         return np.array([0.5, 0.5, 0.0, 0.0], dtype=np.float32)
+
+    def _create_renderer(self) -> Renderer:
+        """Create a dummy renderer for testing."""
+        return None
+
+    def _get_render_state(self) -> Dict[str, Any]:
+        """Get current render state for testing."""
+        return {}
 
 
 def test_environment_is_abstract():
