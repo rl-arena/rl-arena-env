@@ -11,11 +11,29 @@ Inspired by kaggle-environments interactive mode.
 """
 
 import time
-import pygame
 import numpy as np
-from typing import Optional, Dict, Any, Callable
+from typing import Optional, Dict, Any, Callable, TYPE_CHECKING
+
+# Import pygame lazily to avoid ImportError when not using interactive mode
+pygame = None
+
 from rl_arena import make
 from rl_arena.core.agent import Agent
+
+
+def _ensure_pygame():
+    """Ensure pygame is imported. Raises ImportError if not available."""
+    global pygame
+    if pygame is None:
+        try:
+            import pygame as pg
+
+            globals()["pygame"] = pg
+        except ImportError:
+            raise ImportError(
+                "pygame is required for interactive mode. "
+                "Install it with: pip install 'rl-arena[interactive]' or pip install pygame"
+            )
 
 
 class HumanAgent(Agent):
@@ -30,6 +48,8 @@ class HumanAgent(Agent):
                 Default: Arrow keys for UP/DOWN, SPACE for STAY
         """
         super().__init__()
+        _ensure_pygame()
+
         self.current_action = 1  # Default: STAY
         self.control_keys = control_keys or {
             pygame.K_UP: 0,  # UP
@@ -73,6 +93,9 @@ class InteractivePlayer:
             config: Environment configuration
             fps: Frames per second for rendering
         """
+        # Ensure pygame is available
+        _ensure_pygame()
+
         # Create environment with human rendering
         config = config or {}
         config["render_mode"] = "rgb_array"

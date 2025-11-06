@@ -46,8 +46,14 @@ from rl_arena.utils.replay import (
     replay_to_html,
 )
 
-# Interactive play
-from rl_arena.interactive import InteractivePlayer as play
+
+# Lazy import for interactive play (pygame is optional)
+def play(*args, **kwargs):
+    """Create an InteractivePlayer instance. Requires pygame."""
+    from rl_arena.interactive import InteractivePlayer
+
+    return InteractivePlayer(*args, **kwargs)
+
 
 # Built-in agents
 from rl_arena.agents import RandomAgent, RuleBasedAgent
