@@ -52,12 +52,12 @@ try:
         verbose=0,
     )
     print("   ✅ Training completed!")
-    
+
     # Save model
     model.save("demo_agent.zip")
     print("   ✅ Model saved: demo_agent.zip")
     print()
-    
+
     # ============================================================
     # 4. Evaluation
     # ============================================================
@@ -69,12 +69,12 @@ try:
         n_episodes=5,
         render=False,
     )
-    
+
     print(f"   Mean reward: {results['mean_reward']:.2f} ± {results['std_reward']:.2f}")
     print(f"   Mean length: {results['mean_length']:.2f}")
     print("   ✅ Evaluation completed!")
     print()
-    
+
     # ============================================================
     # 5. Submission Preparation
     # ============================================================
@@ -88,34 +88,34 @@ try:
         version="0.1.0",
     )
     print()
-    
+
     # ============================================================
     # 6. Validation
     # ============================================================
     print("6️⃣ Validating submission...")
     validation = rl_arena.validate("demo_submission.py")
-    
-    if validation['valid']:
+
+    if validation["valid"]:
         print("   ✅ Submission is valid!")
         print(f"   File size: {validation['file_size'] / 1024:.1f} KB")
     else:
         print("   ❌ Issues found:")
-        for issue in validation['issues']:
+        for issue in validation["issues"]:
             print(f"      - {issue}")
-    
-    if validation['warnings']:
+
+    if validation["warnings"]:
         print("   ⚠️ Warnings:")
-        for warning in validation['warnings']:
+        for warning in validation["warnings"]:
             print(f"      - {warning}")
-    
+
     print()
-    
+
 except ImportError:
     print("   ⚠️ Stable-Baselines3 not installed")
     print("   Install with: pip install stable-baselines3")
     print("   Skipping training demo...")
     print()
-    
+
     # Show how to use pre-trained models
     print("   Alternative: Use built-in agents")
     print()

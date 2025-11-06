@@ -125,13 +125,11 @@ def create_environment(game_name: str, output_dir: Path, force: bool = False) ->
     print("   - Document game rules and mechanics")
     print()
     print("5. Register environment in rl_arena/envs/__init__.py")
-    print(f'   - Add: from rl_arena.envs.{game_name_lower} import {class_name}Environment')
+    print(f"   - Add: from rl_arena.envs.{game_name_lower} import {class_name}Environment")
     print()
     print("6. Test your environment:")
-    print(f"   python -c \"from rl_arena.tools import validate_environment;")
-    print(
-        f"   from rl_arena.envs.{game_name_lower} import {class_name}Environment;"
-    )
+    print(f'   python -c "from rl_arena.tools import validate_environment;')
+    print(f"   from rl_arena.envs.{game_name_lower} import {class_name}Environment;")
     print(f'   validate_environment({class_name}Environment)"')
     print()
     print("7. Run tests:")
@@ -168,9 +166,7 @@ Examples:
         help="Output directory (default: rl_arena/envs)",
     )
 
-    parser.add_argument(
-        "--force", "-f", action="store_true", help="Overwrite existing directory"
-    )
+    parser.add_argument("--force", "-f", action="store_true", help="Overwrite existing directory")
 
     args = parser.parse_args()
 

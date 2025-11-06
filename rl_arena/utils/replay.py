@@ -46,7 +46,8 @@ def load_replay(filepath: str) -> Dict[str, Any]:
         >>> print(f"Number of frames: {replay['num_frames']}")
     """
     with open(filepath, "r", encoding="utf-8") as f:
-        return json.load(f)
+        data: Dict[str, Any] = json.load(f)
+        return data
 
 
 def replay_to_html(

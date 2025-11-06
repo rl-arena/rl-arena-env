@@ -79,9 +79,7 @@ class EnvironmentValidator:
 
             # Return success status
             if self.errors:
-                raise ValidationError(
-                    f"Validation failed with {len(self.errors)} error(s)"
-                )
+                raise ValidationError(f"Validation failed with {len(self.errors)} error(s)")
 
             return True
 
@@ -91,9 +89,7 @@ class EnvironmentValidator:
             self.errors.append(f"Unexpected error during validation: {str(e)}")
             raise ValidationError(f"Validation failed: {str(e)}")
 
-    def _create_environment(
-        self, config: Optional[Dict[str, Any]] = None
-    ) -> Environment:
+    def _create_environment(self, config: Optional[Dict[str, Any]] = None) -> Environment:
         """Create environment instance for testing."""
         try:
             env = self.env_class(configuration=config)
@@ -110,9 +106,7 @@ class EnvironmentValidator:
             print("📋 Checking inheritance...")
 
         if not isinstance(env, Environment):
-            self.errors.append(
-                f"{self.env_class.__name__} must inherit from Environment"
-            )
+            self.errors.append(f"{self.env_class.__name__} must inherit from Environment")
         else:
             if self.verbose:
                 print("  ✓ Inherits from Environment\n")
@@ -126,9 +120,7 @@ class EnvironmentValidator:
         try:
             num_players = env.num_players
             if not isinstance(num_players, int):
-                self.errors.append(
-                    f"num_players must be int, got {type(num_players)}"
-                )
+                self.errors.append(f"num_players must be int, got {type(num_players)}")
             elif num_players < 1:
                 self.errors.append(f"num_players must be >= 1, got {num_players}")
             else:
@@ -141,9 +133,7 @@ class EnvironmentValidator:
         try:
             action_space = env.action_space
             if not isinstance(action_space, gym.Space):
-                self.errors.append(
-                    f"action_space must be gym.Space, got {type(action_space)}"
-                )
+                self.errors.append(f"action_space must be gym.Space, got {type(action_space)}")
             else:
                 if self.verbose:
                     print(f"  ✓ action_space: {action_space}")
@@ -232,9 +222,7 @@ class EnvironmentValidator:
                 # Check each observation
                 for i, obs in enumerate(observations):
                     if not env.observation_space.contains(obs):
-                        self.errors.append(
-                            f"Observation {i} from reset() not in observation_space"
-                        )
+                        self.errors.append(f"Observation {i} from reset() not in observation_space")
 
             # Check info type
             if not isinstance(info, dict):
@@ -292,9 +280,7 @@ class EnvironmentValidator:
 
             # Check observations
             if not isinstance(new_obs, list):
-                self.errors.append(
-                    f"step() must return list of observations, got {type(new_obs)}"
-                )
+                self.errors.append(f"step() must return list of observations, got {type(new_obs)}")
             elif len(new_obs) != env.num_players:
                 self.errors.append(
                     f"step() must return {env.num_players} observations, got {len(new_obs)}"
@@ -302,15 +288,11 @@ class EnvironmentValidator:
             else:
                 for i, obs in enumerate(new_obs):
                     if not env.observation_space.contains(obs):
-                        self.errors.append(
-                            f"Observation {i} from step() not in observation_space"
-                        )
+                        self.errors.append(f"Observation {i} from step() not in observation_space")
 
             # Check rewards
             if not isinstance(rewards, list):
-                self.errors.append(
-                    f"step() must return list of rewards, got {type(rewards)}"
-                )
+                self.errors.append(f"step() must return list of rewards, got {type(rewards)}")
             elif len(rewards) != env.num_players:
                 self.errors.append(
                     f"step() must return {env.num_players} rewards, got {len(rewards)}"
@@ -318,21 +300,15 @@ class EnvironmentValidator:
             else:
                 for i, reward in enumerate(rewards):
                     if not isinstance(reward, (int, float, np.number)):
-                        self.errors.append(
-                            f"Reward {i} must be numeric, got {type(reward)}"
-                        )
+                        self.errors.append(f"Reward {i} must be numeric, got {type(reward)}")
 
             # Check terminated
             if not isinstance(terminated, bool):
-                self.errors.append(
-                    f"step() terminated must be bool, got {type(terminated)}"
-                )
+                self.errors.append(f"step() terminated must be bool, got {type(terminated)}")
 
             # Check truncated
             if not isinstance(truncated, bool):
-                self.errors.append(
-                    f"step() truncated must be bool, got {type(truncated)}"
-                )
+                self.errors.append(f"step() truncated must be bool, got {type(truncated)}")
 
             # Check info
             if not isinstance(info, dict):
@@ -392,14 +368,10 @@ class EnvironmentValidator:
                         )
                 elif mode == "ansi":
                     if not isinstance(result, str):
-                        self.errors.append(
-                            f"render('ansi') must return string, got {type(result)}"
-                        )
+                        self.errors.append(f"render('ansi') must return string, got {type(result)}")
                 elif mode == "html":
                     if not isinstance(result, str):
-                        self.errors.append(
-                            f"render('html') must return string, got {type(result)}"
-                        )
+                        self.errors.append(f"render('html') must return string, got {type(result)}")
 
                 if self.verbose:
                     print(f"  ✓ render('{mode}') works")
@@ -453,9 +425,7 @@ class EnvironmentValidator:
             else:
                 # Check initial observations
                 if not self._observations_equal(trajectory1[0], trajectory2[0]):
-                    self.warnings.append(
-                        "Same seed produces different initial observations"
-                    )
+                    self.warnings.append("Same seed produces different initial observations")
                 else:
                     if self.verbose:
                         print(f"  ✓ Seeding is reproducible")
@@ -477,9 +447,7 @@ class EnvironmentValidator:
         # Test with wrong number of actions
         try:
             env.step([env.action_space.sample()])  # Only 1 action instead of num_players
-            self.warnings.append(
-                "step() accepts wrong number of actions (should validate)"
-            )
+            self.warnings.append("step() accepts wrong number of actions (should validate)")
         except (ValueError, AssertionError, IndexError):
             if self.verbose:
                 print(f"  ✓ Rejects wrong number of actions")
@@ -492,9 +460,7 @@ class EnvironmentValidator:
                 invalid_action = env.action_space.n + 10  # Out of range
                 actions = [invalid_action] * env.num_players
                 env.step(actions)
-                self.warnings.append(
-                    "step() accepts invalid actions (should validate or clip)"
-                )
+                self.warnings.append("step() accepts invalid actions (should validate or clip)")
             elif self.verbose:
                 print(f"  ⚠ Cannot test invalid actions for {type(env.action_space)}")
         except (ValueError, AssertionError, IndexError):
@@ -541,9 +507,7 @@ class EnvironmentValidator:
         if self.verbose:
             print()
 
-    def _observations_equal(
-        self, obs1: List[ObservationType], obs2: List[ObservationType]
-    ) -> bool:
+    def _observations_equal(self, obs1: List[ObservationType], obs2: List[ObservationType]) -> bool:
         """Check if two observation lists are equal."""
         if len(obs1) != len(obs2):
             return False
@@ -576,9 +540,7 @@ class EnvironmentValidator:
         if not self.errors and not self.warnings:
             print("\n✅ All checks passed! Environment is valid.")
         elif not self.errors:
-            print(
-                f"\n✅ Environment is valid (with {len(self.warnings)} warnings to review)"
-            )
+            print(f"\n✅ Environment is valid (with {len(self.warnings)} warnings to review)")
         else:
             print(f"\n❌ Validation failed with {len(self.errors)} error(s)")
 
