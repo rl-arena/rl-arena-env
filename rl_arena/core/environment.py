@@ -38,7 +38,7 @@ class Environment(ABC):
         self._np_random: Optional[np.random.Generator] = None
         self._seed: Optional[int] = None
         self._renderer: Optional[Renderer] = None
-        self._render_mode: Optional[str] = None
+        self._render_mode: Optional[str] = self.configuration.get("render_mode")
         self._state_history: List[Dict[str, Any]] = []
         self._record_states: bool = False
 

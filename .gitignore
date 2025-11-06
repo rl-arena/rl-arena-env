@@ -187,10 +187,11 @@ replays/
 logs/
 
 # Match recordings and visualizations
-recordings/
-*.json.recording
+recordings/*.json
+recordings/*.html
 test_*.py
 test_*.html
+quick_*.py
 
 # Matplotlib cache
 .matplotlib/
