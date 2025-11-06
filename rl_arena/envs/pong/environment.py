@@ -11,6 +11,7 @@ from rl_arena.core.types import ObservationType, ActionType, RewardType
 from rl_arena.core.exceptions import InvalidActionError, InvalidPlayerError, GameEndedError
 from rl_arena.envs.registry import register_environment
 from rl_arena.envs.pong.renderer import PongRenderer
+from rl_arena.core.renderer import Renderer
 
 
 @register_environment("pong")
@@ -41,7 +42,7 @@ class PongEnvironment(Environment):
     """
 
     metadata = {
-        "render_modes": ["human", "rgb_array", "ansi"],
+        "render_modes": ["human", "rgb_array", "ansi", "ipython", "html"],
         "render_fps": 60,
     }
 
@@ -92,9 +93,6 @@ class PongEnvironment(Environment):
         self.paddle2_y = 0.5
         self.score1 = 0
         self.score2 = 0
-
-        # Renderer
-        self.renderer: Optional[PongRenderer] = None
 
         self._num_players = 2
         self._current_step = 0
@@ -224,6 +222,9 @@ class PongEnvironment(Environment):
 
         self._current_step += 1
 
+        # Record state if recording is enabled
+        self._record_state()
+
         # Check for episode end
         terminated = self.score1 >= self.winning_score or self.score2 >= self.winning_score
         truncated = self._current_step >= self.max_steps
@@ -240,20 +241,19 @@ class PongEnvironment(Environment):
 
         return observations, rewards, terminated, truncated, info
 
-    def render(self, mode: str = "human") -> Optional[Any]:
-        """Render the environment."""
-        if self.renderer is None:
-            self.renderer = PongRenderer(width=self.width, height=self.height, mode=mode)
+    def _create_renderer(self) -> Renderer:
+        """Create and return a PongRenderer instance."""
+        return PongRenderer(width=800, height=600)
 
-        return self.renderer.render(
-            ball_pos=self.ball_pos,
-            ball_radius=self.ball_radius,
-            paddle1_y=self.paddle1_y,
-            paddle2_y=self.paddle2_y,
-            paddle_height=self.paddle_height,
-            score1=self.score1,
-            score2=self.score2,
-        )
+    def _get_render_state(self) -> Dict[str, Any]:
+        """Get the current state in a format suitable for rendering."""
+        return {
+            'ball': {'x': float(self.ball_pos[0]), 'y': float(self.ball_pos[1])},
+            'paddle1': {'y': float(self.paddle1_y)},
+            'paddle2': {'y': float(self.paddle2_y)},
+            'paddle_height': self.paddle_height,
+            'score': [self.score1, self.score2]
+        }
 
     def get_observation(self, player_id: int) -> ObservationType:
         """Get observation for a specific player."""
@@ -265,9 +265,7 @@ class PongEnvironment(Environment):
 
     def close(self) -> None:
         """Clean up resources."""
-        if self.renderer is not None:
-            self.renderer.close()
-            self.renderer = None
+        super().close()  # This will clean up the renderer
 
     def _get_observation_array(self) -> np.ndarray:
         """Get the current observation as a numpy array."""

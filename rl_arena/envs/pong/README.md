@@ -94,6 +94,77 @@ while not done:
 env.close()
 ```
 
+## Visualization & Recording
+
+### Real-time Visualization
+
+```python
+import rl_arena
+
+env = rl_arena.make("pong")
+observations, info = env.reset()
+
+for _ in range(100):
+    actions = [env.action_space.sample(), env.action_space.sample()]
+    observations, rewards, terminated, truncated, info = env.step(actions)
+    
+    # Display in Matplotlib window
+    env.render(mode='human')
+    
+    if terminated or truncated:
+        break
+
+env.close()
+```
+
+### Render Modes
+
+Pong supports multiple rendering modes:
+
+- **`human`**: Real-time Matplotlib window with dark theme
+- **`rgb_array`**: Returns (600, 800, 3) NumPy array
+- **`ansi`**: ASCII art for terminal (40x20 grid)
+- **`ipython`**: Inline display in Jupyter notebooks
+- **`html`**: Interactive HTML5 replay (requires state recording)
+
+### Recording Matches
+
+```python
+from rl_arena.core.recorder import MatchRecorder
+
+env = rl_arena.make("pong")
+recorder = MatchRecorder(metadata={'player1': 'AgentA', 'player2': 'AgentB'})
+recorder.start_recording()
+
+observations, info = env.reset()
+for _ in range(1000):
+    actions = [agent1.act(observations[0]), agent2.act(observations[1])]
+    observations, rewards, terminated, truncated, info = env.step(actions)
+    
+    # Record frame
+    state = env._get_render_state()
+    recorder.record_frame(state, actions, rewards, info)
+    
+    if terminated or truncated:
+        break
+
+recorder.stop_recording()
+recorder.save('match.json')
+print(f'Recorded {len(recorder)} frames')
+```
+
+### Generate HTML Replay
+
+```python
+from rl_arena.utils.replay import load_replay, replay_to_html
+
+replay = load_replay('match.json')
+replay_to_html(replay, 'Pong', 'replay.html')
+# Open replay.html in your browser!
+```
+
+See [VISUALIZATION.md](../../../docs/VISUALIZATION.md) for complete documentation.
+
 ## Strategy Tips
 
 For AI agents competing in Pong:

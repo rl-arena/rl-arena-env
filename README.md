@@ -16,7 +16,9 @@ A Python library for competitive reinforcement learning environments, similar to
 - **Well-tested**: Comprehensive test suite with >80% coverage
 - **Type-safe**: Full type hints for better development experience
 - **Reproducible**: Deterministic environments with seed support
-- **Replay System**: Save and analyze game replays
+- **Visualization System**: Real-time rendering with Matplotlib
+- **Replay Recording**: Save and replay matches in JSON format
+- **HTML5 Replays**: Interactive browser-based match playback
 
 ## 📦 Installation
 
@@ -177,6 +179,68 @@ git push origin feature/my-new-environment
 ```
 
 ## 📖 Examples
+
+### Visualize Games
+
+```bash
+# Real-time visualization with Matplotlib
+python examples/visualize_game.py
+```
+
+### Record and Replay Matches
+
+```bash
+# Record a match to JSON
+python examples/record_match.py
+
+# Convert recording to HTML5 replay
+python examples/replay_to_html.py
+
+# Open recordings/pong_replay.html in your browser
+```
+
+### Using Visualization in Code
+
+```python
+from rl_arena.envs.pong.environment import PongEnvironment
+from rl_arena.core.recorder import MatchRecorder
+
+# Create environment with visualization
+env = PongEnvironment()
+env.reset()
+
+# Enable state recording for replay
+env.enable_state_recording(True)
+
+# Run game with rendering
+for _ in range(100):
+    actions = [env.action_space.sample(), env.action_space.sample()]
+    env.step(actions)
+    env.render(mode='human')  # Show in Matplotlib window
+
+# Save replay as HTML
+history = env.get_state_history()
+from rl_arena.utils.replay import replay_to_html
+html = replay_to_html({'frames': history}, 'Pong', 'replay.html')
+```
+
+### Record with MatchRecorder
+
+```python
+from rl_arena.core.recorder import MatchRecorder
+
+# Create recorder
+recorder = MatchRecorder(metadata={'player1': 'Agent1', 'player2': 'Agent2'})
+recorder.start_recording()
+
+# Record each frame during gameplay
+for step in range(100):
+    state = env._get_render_state()
+    recorder.record_frame(state, actions, rewards, info)
+
+recorder.stop_recording()
+recorder.save('match.json')
+```
 
 ### Random Agents
 

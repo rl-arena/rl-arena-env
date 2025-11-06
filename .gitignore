@@ -185,3 +185,12 @@ cython_debug/
 *.replay
 replays/
 logs/
+
+# Match recordings and visualizations
+recordings/
+*.json.recording
+test_*.py
+test_*.html
+
+# Matplotlib cache
+.matplotlib/
