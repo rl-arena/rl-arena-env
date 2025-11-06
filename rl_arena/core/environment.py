@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Tuple, Optional
 import numpy as np
 import gymnasium as gym
 from rl_arena.core.types import ObservationType, ActionType, RewardType
+from rl_arena.core.renderer import Renderer
 
 
 class Environment(ABC):
@@ -21,7 +22,7 @@ class Environment(ABC):
         metadata: Environment metadata (render modes, etc.)
     """
 
-    metadata: Dict[str, Any] = {"render_modes": ["human", "rgb_array", "ansi"]}
+    metadata: Dict[str, Any] = {"render_modes": ["human", "rgb_array", "ansi", "ipython", "html"]}
 
     def __init__(self, configuration: Optional[Dict[str, Any]] = None):
         """
@@ -36,6 +37,10 @@ class Environment(ABC):
         self._done: bool = False
         self._np_random: Optional[np.random.Generator] = None
         self._seed: Optional[int] = None
+        self._renderer: Optional[Renderer] = None
+        self._render_mode: Optional[str] = None
+        self._state_history: List[Dict[str, Any]] = []
+        self._record_states: bool = False
 
     @property
     @abstractmethod
@@ -111,24 +116,116 @@ class Environment(ABC):
         """
         pass
 
-    @abstractmethod
-    def render(self, mode: str = "human") -> Optional[Any]:
+    def render(self, mode: Optional[str] = None) -> Optional[Any]:
         """
         Render the environment.
 
         Args:
-            mode: Rendering mode
+            mode: Rendering mode (overrides render_mode set in constructor)
                 - 'human': Render to the current display or terminal
                 - 'rgb_array': Return an RGB array (numpy array)
                 - 'ansi': Return a string (ANSI) representation
+                - 'ipython': Display inline in Jupyter notebook
+                - 'html': Return HTML5 animation (requires state history)
 
         Returns:
             Depends on mode:
-                - None for 'human' mode
+                - None for 'human' and 'ipython' mode
                 - numpy array for 'rgb_array' mode
-                - string for 'ansi' mode
+                - string for 'ansi' and 'html' mode
+        """
+        mode = mode or self._render_mode
+        if mode is None:
+            raise ValueError("No render mode specified")
+        
+        if mode not in self.metadata["render_modes"]:
+            raise ValueError(f"Unsupported render mode: {mode}")
+        
+        # Create renderer if needed
+        if self._renderer is None:
+            self._renderer = self._create_renderer()
+        
+        # Get current render state
+        state = self._get_render_state()
+        
+        # Render based on mode
+        if mode == "human":
+            self._renderer.render_human(state)
+            return None
+        elif mode == "rgb_array":
+            return self._renderer.render_frame(state)
+        elif mode == "ansi":
+            if hasattr(self._renderer, 'render_ansi'):
+                return self._renderer.render_ansi(**state)
+            return str(state)
+        elif mode == "ipython":
+            self._renderer.render_ipython(state)
+            return None
+        elif mode == "html":
+            if not self._state_history:
+                raise ValueError("No state history available for HTML rendering. Enable state recording first.")
+            return self._renderer.render_html(self._state_history)
+        
+        return None
+
+    @abstractmethod
+    def _create_renderer(self) -> Renderer:
+        """
+        Create and return a renderer instance for this environment.
+        
+        Subclasses must implement this method to provide their specific renderer.
+        
+        Returns:
+            Renderer instance for this environment
         """
         pass
+
+    @abstractmethod
+    def _get_render_state(self) -> Dict[str, Any]:
+        """
+        Get the current state in a format suitable for rendering.
+        
+        Subclasses must implement this to extract renderable information
+        from their internal state.
+        
+        Returns:
+            Dictionary containing all information needed for rendering
+        """
+        pass
+
+    def enable_state_recording(self, enabled: bool = True) -> None:
+        """
+        Enable or disable state recording for replay functionality.
+        
+        When enabled, the environment will store state snapshots at each step,
+        which can be used for HTML replay generation.
+        
+        Args:
+            enabled: Whether to enable state recording
+        """
+        self._record_states = enabled
+        if enabled and not self._state_history:
+            self._state_history = []
+
+    def get_state_history(self) -> List[Dict[str, Any]]:
+        """
+        Get the recorded state history.
+        
+        Returns:
+            List of state dictionaries, one per step
+        """
+        return self._state_history.copy()
+
+    def clear_state_history(self) -> None:
+        """Clear the recorded state history."""
+        self._state_history = []
+
+    def _record_state(self) -> None:
+        """Record current state if recording is enabled."""
+        if self._record_states:
+            state = self._get_render_state()
+            state['step'] = self._current_step
+            self._state_history.append(state)
 
     @abstractmethod
     def get_observation(self, player_id: int) -> ObservationType:
@@ -156,7 +253,9 @@ class Environment(ABC):
         Override this method if your environment needs cleanup
         (e.g., closing windows, disconnecting from servers).
         """
-        pass
+        if self._renderer is not None:
+            self._renderer.close()
+            self._renderer = None
 
     def seed(self, seed: Optional[int] = None) -> List[int]:
         """

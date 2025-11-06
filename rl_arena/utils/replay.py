@@ -1,193 +1,226 @@
-"""Replay recording and playback functionality."""
+﻿"""Replay utilities for loading and converting match recordings."""
 
+from typing import Dict, Any, List, Optional
 import json
-from typing import Any, Dict, List, Optional
 from pathlib import Path
-from datetime import datetime
-import numpy as np
-
-from rl_arena.core.types import ActionType, ObservationType, RewardType
 
 
-class ReplayRecorder:
+def save_replay(
+    recording: Dict[str, Any],
+    filepath: str,
+    pretty: bool = True
+) -> None:
     """
-    Records environment interactions for later playback and analysis.
-
-    Replays are saved in JSON format with the following structure:
-    {
-        "metadata": {
-            "environment": "pong",
-            "timestamp": "2024-01-01T12:00:00",
-            "num_players": 2,
-            "configuration": {...}
-        },
-        "steps": [
-            {
-                "step": 0,
-                "actions": [0, 1],
-                "observations": [...],
-                "rewards": [0.0, 0.0],
-                "terminated": false,
-                "truncated": false,
-                "info": {...}
-            },
-            ...
-        ]
-    }
+    Save a replay recording to a JSON file.
+    
+    Args:
+        recording: Recording dictionary (from MatchRecorder.get_recording())
+        filepath: Path where the replay will be saved
+        pretty: If True, use indentation for readability
+        
+    Example:
+        >>> recorder = MatchRecorder()
+        >>> # ... record match ...
+        >>> save_replay(recorder.get_recording(), 'match.json')
     """
-
-    def __init__(
-        self,
-        environment_name: str,
-        configuration: Optional[Dict[str, Any]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-    ):
-        """
-        Initialize the replay recorder.
-
-        Args:
-            environment_name: Name of the environment being recorded
-            configuration: Environment configuration used
-            metadata: Additional metadata to store with the replay
-        """
-        self.environment_name = environment_name
-        self.configuration = configuration or {}
-        self.metadata = metadata or {}
-        self.steps: List[Dict[str, Any]] = []
-        self.start_time = datetime.now()
-
-    def record_step(
-        self,
-        step: int,
-        actions: List[ActionType],
-        observations: List[ObservationType],
-        rewards: List[RewardType],
-        terminated: bool,
-        truncated: bool,
-        info: Dict[str, Any],
-    ) -> None:
-        """
-        Record a single step of the environment.
-
-        Args:
-            step: Step number
-            actions: Actions taken by all players
-            observations: Observations received by all players
-            rewards: Rewards received by all players
-            terminated: Whether the episode terminated naturally
-            truncated: Whether the episode was truncated
-            info: Additional information from the environment
-        """
-        step_data = {
-            "step": step,
-            "actions": self._serialize(actions),
-            "observations": self._serialize(observations),
-            "rewards": self._serialize(rewards),
-            "terminated": terminated,
-            "truncated": truncated,
-            "info": self._serialize(info),
-        }
-        self.steps.append(step_data)
-
-    def save(self, filepath: str) -> None:
-        """
-        Save the replay to a JSON file.
-
-        Args:
-            filepath: Path where to save the replay
-        """
-        replay_data = {
-            "metadata": {
-                "environment": self.environment_name,
-                "timestamp": self.start_time.isoformat(),
-                "num_steps": len(self.steps),
-                "configuration": self.configuration,
-                **self.metadata,
-            },
-            "steps": self.steps,
-        }
-
-        filepath = Path(filepath)
-        filepath.parent.mkdir(parents=True, exist_ok=True)
-
-        with open(filepath, "w") as f:
-            json.dump(replay_data, f, indent=2)
-
-    @staticmethod
-    def _serialize(obj: Any) -> Any:
-        """Convert numpy arrays and other non-JSON types to JSON-serializable formats."""
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        elif isinstance(obj, (np.integer, np.floating)):
-            return obj.item()
-        elif isinstance(obj, dict):
-            return {k: ReplayRecorder._serialize(v) for k, v in obj.items()}
-        elif isinstance(obj, (list, tuple)):
-            return [ReplayRecorder._serialize(item) for item in obj]
-        else:
-            return obj
+    Path(filepath).parent.mkdir(parents=True, exist_ok=True)
+    
+    indent = 2 if pretty else None
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump(recording, f, indent=indent, default=str)
 
 
 def load_replay(filepath: str) -> Dict[str, Any]:
     """
-    Load a replay from a JSON file.
-
+    Load a replay recording from a JSON file.
+    
     Args:
         filepath: Path to the replay file
-
+        
     Returns:
-        Dictionary containing replay data with 'metadata' and 'steps' keys
-
+        Recording dictionary
+        
+    Raises:
+        FileNotFoundError: If the file doesn't exist
+        json.JSONDecodeError: If the file is not valid JSON
+        
     Example:
-        >>> replay = load_replay("replays/game_001.json")
-        >>> print(f"Environment: {replay['metadata']['environment']}")
-        >>> print(f"Number of steps: {replay['metadata']['num_steps']}")
-        >>> for step_data in replay['steps']:
-        ...     print(f"Step {step_data['step']}: actions={step_data['actions']}")
+        >>> replay = load_replay('match.json')
+        >>> print(f"Match duration: {replay['duration']} seconds")
+        >>> print(f"Number of frames: {replay['num_frames']}")
     """
-    with open(filepath, "r") as f:
+    with open(filepath, 'r', encoding='utf-8') as f:
         return json.load(f)
 
 
-def save_replay(
-    replay_data: Dict[str, Any],
-    filepath: str,
-) -> None:
+def replay_to_html(
+    recording: Dict[str, Any],
+    env_name: str,
+    output_path: Optional[str] = None
+) -> str:
     """
-    Save replay data to a JSON file.
-
+    Convert a replay recording to an HTML5 animation.
+    
     Args:
-        replay_data: Replay data dictionary
-        filepath: Path where to save the replay
-    """
-    filepath = Path(filepath)
-    filepath.parent.mkdir(parents=True, exist_ok=True)
-
-    with open(filepath, "w") as f:
-        json.dump(replay_data, f, indent=2)
-
-
-def replay_episode(
-    environment: Any,
-    replay_data: Dict[str, Any],
-    render: bool = True,
-) -> None:
-    """
-    Replay a recorded episode in an environment.
-
-    Args:
-        environment: The environment to replay in
-        replay_data: Replay data loaded from a file
-        render: Whether to render during replay
-
+        recording: Recording dictionary
+        env_name: Name of the environment (e.g., 'Pong')
+        output_path: Optional path to save the HTML file
+        
+    Returns:
+        HTML string
+        
     Example:
-        >>> import rl_arena
-        >>> from rl_arena.utils import load_replay, replay_episode
-        >>>
-        >>> env = rl_arena.make("pong")
-        >>> replay = load_replay("replays/game_001.json")
-        >>> replay_episode(env, replay, render=True)
+        >>> replay = load_replay('match.json')
+        >>> html = replay_to_html(replay, 'Pong', 'match.html')
     """
-    # TODO: Implement replay playback
-    # This would step through the recorded actions and visualize the game
-    pass
+    from rl_arena.utils.html_template import generate_html
+    
+    # Extract state history from frames
+    state_history = [frame['state'] for frame in recording.get('frames', [])]
+    
+    # Generate HTML
+    html = generate_html(
+        state_history=state_history,
+        env_name=env_name,
+        metadata=recording.get('metadata', {}),
+        duration=recording.get('duration')
+    )
+    
+    # Save if output path is provided
+    if output_path:
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(html)
+    
+    return html
+
+
+def get_replay_stats(recording: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Extract statistics from a replay recording.
+    
+    Args:
+        recording: Recording dictionary
+        
+    Returns:
+        Dictionary containing replay statistics
+        
+    Example:
+        >>> replay = load_replay('match.json')
+        >>> stats = get_replay_stats(replay)
+        >>> print(f"Average reward: {stats['avg_reward']}")
+    """
+    frames = recording.get('frames', [])
+    
+    if not frames:
+        return {
+            'num_frames': 0,
+            'duration': recording.get('duration'),
+            'metadata': recording.get('metadata', {})
+        }
+    
+    # Calculate statistics
+    total_rewards = [0.0] * len(frames[0].get('rewards', [0]))
+    for frame in frames:
+        rewards = frame.get('rewards', [])
+        for i, r in enumerate(rewards):
+            if i < len(total_rewards):
+                total_rewards[i] += r
+    
+    avg_rewards = [r / len(frames) for r in total_rewards]
+    
+    return {
+        'num_frames': len(frames),
+        'duration': recording.get('duration'),
+        'total_rewards': total_rewards,
+        'avg_rewards': avg_rewards,
+        'metadata': recording.get('metadata', {}),
+        'start_time': recording.get('start_time'),
+        'end_time': recording.get('end_time')
+    }
+
+
+def merge_replays(replays: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Merge multiple replay recordings into a single recording.
+    
+    Args:
+        replays: List of recording dictionaries
+        
+    Returns:
+        Merged recording dictionary
+        
+    Example:
+        >>> replay1 = load_replay('match1.json')
+        >>> replay2 = load_replay('match2.json')
+        >>> merged = merge_replays([replay1, replay2])
+        >>> save_replay(merged, 'combined.json')
+    """
+    if not replays:
+        return {'metadata': {}, 'frames': []}
+    
+    merged_frames = []
+    step_offset = 0
+    
+    for replay in replays:
+        frames = replay.get('frames', [])
+        for frame in frames:
+            new_frame = frame.copy()
+            new_frame['step'] = step_offset + frame.get('step', 0)
+            merged_frames.append(new_frame)
+        step_offset += len(frames)
+    
+    # Merge metadata
+    merged_metadata = replays[0].get('metadata', {}).copy()
+    merged_metadata['num_matches'] = len(replays)
+    
+    return {
+        'metadata': merged_metadata,
+        'start_time': replays[0].get('start_time'),
+        'end_time': replays[-1].get('end_time'),
+        'duration': sum(r.get('duration', 0) for r in replays if r.get('duration')),
+        'num_frames': len(merged_frames),
+        'frames': merged_frames
+    }
+
+
+def extract_frames(
+    recording: Dict[str, Any],
+    start: int = 0,
+    end: Optional[int] = None,
+    step: int = 1
+) -> Dict[str, Any]:
+    """
+    Extract a subset of frames from a recording.
+    
+    Args:
+        recording: Recording dictionary
+        start: Starting frame index
+        end: Ending frame index (exclusive), None for all remaining frames
+        step: Step size for frame extraction
+        
+    Returns:
+        New recording with extracted frames
+        
+    Example:
+        >>> replay = load_replay('match.json')
+        >>> # Extract every 10th frame
+        >>> sparse = extract_frames(replay, step=10)
+        >>> # Extract first 100 frames
+        >>> beginning = extract_frames(replay, end=100)
+    """
+    frames = recording.get('frames', [])
+    extracted_frames = frames[start:end:step]
+    
+    # Renumber steps
+    for i, frame in enumerate(extracted_frames):
+        frame['step'] = i
+    
+    return {
+        'metadata': recording.get('metadata', {}).copy(),
+        'start_time': recording.get('start_time'),
+        'end_time': recording.get('end_time'),
+        'duration': recording.get('duration'),
+        'num_frames': len(extracted_frames),
+        'frames': extracted_frames
+    }
