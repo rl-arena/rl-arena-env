@@ -19,7 +19,7 @@ Quick Start:
 """
 
 from rl_arena.version import __version__
-from rl_arena.make import make
+from rl_arena.make import make, list_environments
 
 # Core classes
 from rl_arena.core.agent import Agent
@@ -63,6 +63,7 @@ __all__ = [
     "__version__",
     # Core
     "make",
+    "list_environments",
     "Agent",
     "Environment",
     # Training
