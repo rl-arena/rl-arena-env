@@ -5,7 +5,7 @@ A Python library for competitive reinforcement learning environments, similar to
 [![Tests](https://github.com/rl-arena/rl-arena-env/workflows/Tests/badge.svg)](https://github.com/rl-arena/rl-arena-env/actions)
 [![PyPI version](https://badge.fury.io/py/rl-arena.svg)](https://badge.fury.io/py/rl-arena)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 ## 🌟 Features
@@ -138,14 +138,13 @@ env = rl_arena.make("pong", configuration={
 **Action Space:** Discrete(3) - UP, STAY, DOWN  
 **Rewards:** +1 for scoring, -1 for conceding
 
-See [environment documentation](rl_arena/envs/pong/README.md) for more details.
+See [Pong documentation](rl_arena/envs/pong/README.md) for more details.
 
 ## 📚 Documentation
 
-- **[Quick Start](docs/quickstart.md)**: Get started in 5 minutes
-- **[Environment Guide](docs/environment_guide.md)**: Create custom environments
-- **[API Reference](docs/api_reference.md)**: Complete API documentation
-- **[Contributing](docs/contributing.md)**: Contribution guidelines
+- **[Complete Library API Guide](docs/LIBRARY_API.md)**: Full API reference with examples
+- **[Environment Creation Tutorial](docs/ENVIRONMENT_CREATION_TUTORIAL.md)**: Create custom environments
+- **[Interactive Mode Guide](docs/INTERACTIVE_MODE.md)**: Play against AI interactively
 
 ## 🔨 Development
 
@@ -179,12 +178,10 @@ flake8 rl_arena/ tests/ examples/
 
 We welcome contributions! Here's how you can help:
 
-1. **Add New Environments**: See [Environment Guide](docs/environment_guide.md)
+1. **Add New Environments**: See [Environment Creation Tutorial](docs/ENVIRONMENT_CREATION_TUTORIAL.md)
 2. **Fix Bugs**: Check [open issues](https://github.com/rl-arena/rl-arena-env/issues)
 3. **Improve Documentation**: Help make RL Arena more accessible
 4. **Add Examples**: Share your agent implementations
-
-See [CONTRIBUTING.md](docs/contributing.md) for detailed guidelines.
 
 ### Quick Contribution Workflow
 
@@ -212,91 +209,67 @@ git push origin feature/my-new-environment
 
 ## 📖 Examples
 
-### Visualize Games
+### Train and Evaluate Agent
 
-```bash
-# Real-time visualization with Matplotlib
-python examples/visualize_game.py
+```python
+import rl_arena
+
+# Train DQN agent
+model = rl_arena.train_dqn("pong", total_timesteps=50000)
+
+# Evaluate performance
+agent = rl_arena.create_agent(model)
+results = rl_arena.evaluate(agent, "pong", n_episodes=20)
+print(f"Win rate: {results['mean_reward']:.2%}")
+```
+
+### Interactive Play (Human vs AI)
+
+```python
+# Requires pygame: pip install pygame
+player = rl_arena.play("pong", fps=60)
+player.play(
+    player1_agent=None,  # Human player
+    player2_agent=agent,  # Your trained AI
+)
 ```
 
 ### Record and Replay Matches
 
-```bash
-# Record a match to JSON
-python examples/record_match.py
+```python
+from rl_arena.utils.replay import save_replay, replay_to_html
 
-# Convert recording to HTML5 replay
-python examples/replay_to_html.py
+# Record match
+recorder = rl_arena.MatchRecorder()
+env = rl_arena.make("pong")
+env.set_recorder(recorder)
 
-# Open recordings/pong_replay.html in your browser
+# ... play game ...
+
+# Save replay
+recording = recorder.get_recording()
+save_replay(recording, "match.json")
+
+# Generate HTML replay
+html = replay_to_html(recording, "pong", "replay.html")
 ```
 
-### Using Visualization in Code
+### Create Submission File
 
 ```python
-from rl_arena.envs.pong.environment import PongEnvironment
-from rl_arena.core.recorder import MatchRecorder
+# Create submission for competition
+rl_arena.create_submission(
+    agent=agent,
+    output_path="submission.py",
+    agent_name="MyPongMaster",
+    author="your_name",
+    description="DQN agent trained for 50K steps"
+)
 
-# Create environment with visualization
-env = PongEnvironment()
-env.reset()
-
-# Enable state recording for replay
-env.enable_state_recording(True)
-
-# Run game with rendering
-for _ in range(100):
-    actions = [env.action_space.sample(), env.action_space.sample()]
-    env.step(actions)
-    env.render(mode='human')  # Show in Matplotlib window
-
-# Save replay as HTML
-history = env.get_state_history()
-from rl_arena.utils.replay import replay_to_html
-html = replay_to_html({'frames': history}, 'Pong', 'replay.html')
-```
-
-### Record with MatchRecorder
-
-```python
-from rl_arena.core.recorder import MatchRecorder
-
-# Create recorder
-recorder = MatchRecorder(metadata={'player1': 'Agent1', 'player2': 'Agent2'})
-recorder.start_recording()
-
-# Record each frame during gameplay
-for step in range(100):
-    state = env._get_render_state()
-    recorder.record_frame(state, actions, rewards, info)
-
-recorder.stop_recording()
-recorder.save('match.json')
-```
-
-### Random Agents
-
-```bash
-python examples/random_agent.py
-```
-
-### Train a DQN Agent
-
-```bash
-pip install stable-baselines3[extra]
-python examples/train_dqn_pong.py --train --timesteps 100000
-```
-
-### Run Local Matches
-
-```bash
-python examples/run_local_match.py
-```
-
-### Agent Submission Template
-
-```bash
-python examples/submission_template.py
+# Validate submission
+result = rl_arena.validate("submission.py")
+if result['valid']:
+    print("✅ Ready to submit!")
 ```
 
 ## 🎓 Use Cases
@@ -335,7 +308,11 @@ rl-arena-env/
 
 - **Issues**: [GitHub Issues](https://github.com/rl-arena/rl-arena-env/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/rl-arena/rl-arena-env/discussions)
+- **Email**: kwaklloyd@gmail.com
 
+## 📄 License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## ⭐ Star History
 
