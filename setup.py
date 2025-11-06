@@ -49,8 +49,18 @@ setup(
             "mypy>=0.990",
             "flake8>=5.0.0",
         ],
-        "examples": [
+        "training": [
             "stable-baselines3>=2.0.0",
+        ],
+        "interactive": [
+            "pygame>=2.0.0",
+        ],
+        "visualization": [
+            "matplotlib>=3.5.0",
+        ],
+        "all": [
+            "stable-baselines3>=2.0.0",
+            "pygame>=2.0.0",
             "matplotlib>=3.5.0",
         ],
     },
