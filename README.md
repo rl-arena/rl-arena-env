@@ -44,18 +44,50 @@ cd rl-arena-env
 pip install -e ".[dev]"
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick Start (30 seconds!)
+
+RL-Arena makes it easy to: **Create environments → Train agents → Test → Submit**
 
 ```python
 import rl_arena
-from rl_arena.core.agent import RandomAgent
+
+# 1️⃣ Create environment
+env = rl_arena.make("pong")
+
+# 2️⃣ Train agent (DQN)
+model = rl_arena.train_dqn("pong", total_timesteps=10000)
+
+# 3️⃣ Test agent
+agent = rl_arena.create_agent(model)
+results = rl_arena.evaluate(agent, "pong", n_episodes=10)
+print(f"Average reward: {results['mean_reward']:.2f}")
+
+# 4️⃣ Create submission file
+rl_arena.create_submission(
+    agent,
+    "my_submission.py",
+    agent_name="MyAgent",
+    author="your_name"
+)
+```
+
+**That's it!** Submit `my_submission.py` to rl-arena-backend.
+
+---
+
+## 📖 Basic Usage
+
+### Environment Creation
+
+```python
+import rl_arena
 
 # Create environment
 env = rl_arena.make("pong")
 
-# Create agents
-agent1 = RandomAgent(env.action_space, player_id=0)
-agent2 = RandomAgent(env.action_space, player_id=1)
+# Use built-in agents
+agent1 = rl_arena.RandomAgent()
+agent2 = rl_arena.RuleBasedAgent()
 
 # Run a game
 observations, info = env.reset(seed=42)
