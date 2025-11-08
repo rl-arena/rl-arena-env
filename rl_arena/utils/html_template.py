@@ -3,6 +3,37 @@
 from typing import Dict, Any, List, Optional
 
 
+def _parse_pong_observation(obs_dict: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Parse Pong observation dictionary into structured state.
+    
+    Args:
+        obs_dict: Dictionary mapping agent IDs to observation arrays
+                  Format: {agent_id: [ball_x, ball_y, ball_vx, ball_vy, paddle1_y, paddle2_y, score1, score2]}
+    
+    Returns:
+        Structured state dictionary with ball, paddles, and scores
+    """
+    # Get the first observation (both agents see the same state in Pong)
+    obs = list(obs_dict.values())[0]
+    
+    # Parse observation array: [ball_x, ball_y, ball_vx, ball_vy, paddle1_y, paddle2_y, score1, score2]
+    return {
+        "ball": {
+            "x": float(obs[0]),
+            "y": float(obs[1]),
+        },
+        "paddle1": {
+            "y": float(obs[4]),
+        },
+        "paddle2": {
+            "y": float(obs[5]),
+        },
+        "paddle_height": 0.2,  # Default paddle height
+        "score": [int(obs[6]), int(obs[7])],
+    }
+
+
 def generate_pong_html(history: List[Dict[str, Any]], width: int = 800, height: int = 600) -> str:
     """
     Generate HTML5 animation for Pong environment replay.
@@ -17,8 +48,11 @@ def generate_pong_html(history: List[Dict[str, Any]], width: int = 800, height: 
     """
     import json
 
+    # Convert observation dictionaries to structured states
+    structured_history = [_parse_pong_observation(state) for state in history]
+    
     # Serialize state history
-    history_json = json.dumps(history)
+    history_json = json.dumps(structured_history)
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
